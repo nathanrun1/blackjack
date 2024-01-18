@@ -163,6 +163,7 @@ def run_player_round(deck, plr, dealer_show, bet, ini_hand, bots_playing=False):
     plr_hands = [ini_hand]
     if ini_hand.sum["sum"] == 21:
         print(f"{plr}, you were dealt:\n{ini_hand}, Blackjack")
+        return plr_hands
     else:
         print(f"{plr}, you were dealt:\n{ini_hand}")
         while True:
@@ -276,12 +277,19 @@ class Blackjack:
         deck = Deck(size=DECKS_AMOUNT)
         # deck = get_splitter_deck("A")
         while True:
-            if rounds and self.rounds_played >= rounds:
-                print("Rounds are over, stats:")
-                if bots_playing:
-                    for bot in bots:
-                        print(bot.stats)
-            rounds += 1
+            if rounds:
+                if self.rounds_played >= rounds:
+                    print("Rounds are over, stats:")
+                    if bots_playing:
+                        for bot in bots:
+                            print(bot.stats())
+                    break
+                else:
+                    print(f"ROUND {self.rounds_played + 1}")
+            self.rounds_played += 1
+            if bots_playing:
+                for bot in plrs:
+                    bot.total_rounds = self.rounds_played
             if not bots_playing:
                 choice = input("Play next round? (y/n):\n")
                 if choice != "y":
@@ -317,7 +325,7 @@ class Blackjack:
                         print("Invalid bet, turn skipped.")
                         continue
                 else:
-                    bet = plr.decide("bet_sizing", None)
+                    bet = plr.decide("bet_sizing", None, deck=deck)
                     bets.append((plr, bet))
             if not plrs:
                 print("All players have insufficient bankrolls. Table closed.")
