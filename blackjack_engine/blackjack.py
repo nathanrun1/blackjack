@@ -318,6 +318,7 @@ class Blackjack:
                         continue
                 else:
                     bet = plr.decide("bet_sizing", None)
+                    bets.append((plr, bet))
             if not plrs:
                 print("All players have insufficient bankrolls. Table closed.")
                 break

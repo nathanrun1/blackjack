@@ -53,7 +53,7 @@ class Bot:
             dealer_showing = kwargs.get("dealer_show")
 
             # temp:
-            return "H"
+            return "S"
         elif decision_type == "bet_sizing":
             return MIN_BET
         elif decision_type == "insurance":
