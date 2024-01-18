@@ -24,7 +24,6 @@ def blackjack_rank(rank_val):
 
 
 def blackjack_sum(cards):
-    bj_sum = [0, False]
     bj_sum = {
         "sum": 0,
         "soft": False
@@ -69,11 +68,10 @@ class Player:
 
 
 class Hand:
-    def __init__(self, cards, player, bet, deck, index=0):
+    def __init__(self, cards, player, bet, deck):
         self.player = player
         self.bet = bet
         self.player.bankroll -= self.bet
-        self.index = index
         self.deck = deck
         if cards:
             self.cards = cards
@@ -190,7 +188,16 @@ def run_player_round(deck, plr, dealer_show, bet, ini_hand, bots_playing=False):
                                (" (Su)rrender" if can_surrender else "") +
                                (" (Sp)lit" if can_split else "") + "\n")
             else:
-                action = None # bot's action
+                bot_choices = ["S"]
+                if can_hit:
+                    bot_choices.append("H")
+                if can_double:
+                    bot_choices.append("D")
+                if can_surrender:
+                    bot_choices.append("Su")
+                if can_split:
+                    bot_choices.append("Sp")
+                action = plr.decide("hand_action", bot_choices, hands=plr_hands, deck=deck)
             if action == "S":
                 print(f"{plr} stands" + (f" Hand {ind + 1}" if len(plr_hands) > 1 else "")
                       + f" with {hand.sum["sum"]}")
@@ -245,11 +252,13 @@ def get_splitter_deck(rank):
 
 
 class Blackjack:
-    def __init__(self, bots_playing=False, bots=None):
+    def __init__(self, bots_playing=False, bots=None, rounds=None):
+        self.rounds_played = 0
         if bots is None:
             bots = []
         print("Table has opened!")
         if not bots_playing:
+            print(bots_playing)
             plrs = []
             first_plr_name = input("Enter first player's name:\n")
             plrs.append(Player(name=first_plr_name))
@@ -267,6 +276,12 @@ class Blackjack:
         deck = Deck(size=DECKS_AMOUNT)
         # deck = get_splitter_deck("A")
         while True:
+            if rounds and self.rounds_played >= rounds:
+                print("Rounds are over, stats:")
+                if bots_playing:
+                    for bot in bots:
+                        print(bot.stats)
+            rounds += 1
             if not bots_playing:
                 choice = input("Play next round? (y/n):\n")
                 if choice != "y":
@@ -279,6 +294,7 @@ class Blackjack:
             dealer_hand = [deck.draw(), deck.draw()]
             bets = []
             insured = []
+            blackjacks = []
             hands = []
             results = []
             for plr in plrs:
@@ -301,9 +317,9 @@ class Blackjack:
                         print("Invalid bet, turn skipped.")
                         continue
                 else:
-                    bet = 0 # change to bots decision
+                    bet = plr.decide("bet_sizing", None)
             if not plrs:
-                print("All players have insufficient bankrolls. Shame.\nTable closed, get outta here.")
+                print("All players have insufficient bankrolls. Table closed.")
                 break
             if not bets:
                 print("No players this round.")
@@ -319,7 +335,7 @@ class Blackjack:
                     if not bots_playing:
                         insurance_choice = input(f"{plr}, take insurance (${plr_bet/2})? (y/n)\n")
                     else:
-                        insurance_choice = None # change to bots decision
+                        insurance_choice = plr.decide("insurance", ["y","n"], deck=deck)
                     if insurance_choice == "y":
                         print(f"{plr} has taken insurance for ${plr_bet/2}.")
                         plr.bankroll -= plr_bet/2
@@ -332,17 +348,27 @@ class Blackjack:
                 plr_bet = bet[1]
                 plr_hand = Hand(cards=[deck.draw(),deck.draw()], player=plr,deck=deck,bet=plr_bet)
                 hands.append((plr,plr_hand,plr_bet))
+                if blackjack_sum(plr_hand.cards) == 21:
+                    # Player Blackjack
+                    blackjacks.append((plr, plr_bet))
 
             print("Player hands:")
             print(", ".join(f"{h[0]}: " + h[1].__str__() for h in hands))
 
             if blackjack_sum(dealer_hand) == 21:
                 print(f"Dealer has blackjack: {show_cards(dealer_hand)}")
+                if blackjacks:
+                    print(f"Some players had blackjack.")
+                    print(f"The following players Push:\n{", ".join(bj[0].__str__() for bj in blackjacks)}")
+                    for bj in blackjacks:
+                        plr = bj[0]
+                        plr_bet = bj[1]
+                        plr.bankroll += plr_bet
                 if insured:
                     for i in insured:
                         plr = i[0]
                         val = i[1]
-                        plr.bankroll += val + val * 2 # Insurance pays 2:1
+                        plr.bankroll += val + val * 2  # Insurance pays 2:1
                     print("Some players had taken insurance, payouts:")
                     print("\n".join(f"{i[0]}:\n  PAYOUT: ${i[1] + i[1] * 2}\n  NET WINNINGS: $0" for i in insured))
                     print("All other players lose their bets.")
@@ -428,7 +454,6 @@ class Blackjack:
             print("\n--- END OF RESULTS\n")
 
 
-Blackjack()
 
 
 

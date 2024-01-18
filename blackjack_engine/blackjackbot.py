@@ -21,15 +21,16 @@ def basic_strategy_choice(hand, dealer_show, choices):
     dealer_show_rank = blackjack_rank(dealer_show.rank_val())
 
 
-
 class Bot:
     def __init__(self, **kwargs):
         name = kwargs.get("name")
         bankroll = kwargs.get("bankroll")
         if bankroll:
             self.bankroll = bankroll
+            self.initial_bankroll = bankroll
         else:
             self.bankroll = DEFAULT_BANKROLL
+            self.initial_bankroll = DEFAULT_BANKROLL
         if name:
             self.name = name
         else:
@@ -37,6 +38,10 @@ class Bot:
 
     def __str__(self):
         return self.name
+
+    def stats(self):
+        return (f"NAME: {self.name}\nBANKROLL: ${self.bankroll}\nINITIAL BANKROLL: ${self.initial_bankroll}"
+                f"\nNET WINNINGS: ${self.bankroll - self.initial_bankroll}")
 
     # decide(self, decision_type, choices, **kwargs) provides the bot's decision based on multiple factors
     def decide(self, decision_type, choices, **kwargs):
@@ -46,3 +51,14 @@ class Bot:
             drawn_cards = deck.drawn
             current_hand = next((h for h in hands if h.open))
             dealer_showing = kwargs.get("dealer_show")
+
+            # temp:
+            return "H"
+        elif decision_type == "bet_sizing":
+            return MIN_BET
+        elif decision_type == "insurance":
+            return "y"
+
+
+
+Blackjack(bots_playing=True, bots=[Bot()],rounds=100)
