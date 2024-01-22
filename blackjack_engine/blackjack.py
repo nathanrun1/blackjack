@@ -1,19 +1,21 @@
 import random
 from cards import Deck, Card
 
-DEFAULT_BANKROLL = 1000
-BLACKJACK_PAYS = 3/2 # (e.g. 3/2 i.e. 3/2)
-MIN_BET = 10
-MAX_BET = 100000000000
-DECKS_AMOUNT = 6
-CARDS_BEFORE_SHUFFLING = 0.5 # (e.g 0.5 or 50%)
-INSURANCE = True
-STAND_SOFT_17 = True
-MAX_SPLIT = 4 # How many hands made by splitting max
-RE_SPLIT_ACE = False
-HIT_AFTER_SPLIT_ACE = False
-DOUBLE_AFTER_SPLIT = True
-SURRENDER = True
+rules = {
+    "DEFAULT_BANKROLL": 1000,
+    "BLACKJACK_PAYS": (3/2), # (e.g. 3/2 i.e. 3/2)
+    "MIN_BET": 10,
+    "MAX_BET": 100000000000,
+    "DECKS_AMOUNT": 6,
+    "CARDS_BEFORE_SHUFFLING": 0.5,  # (e.g 0.5 or 50%)
+    "INSURANCE": True,
+    "STAND_SOFT_17": True,
+    "MAX_SPLIT": 4,  # How many hands made by splitting max
+    "RE_SPLIT_ACE": False,
+    "HIT_AFTER_SPLIT_ACE": False,
+    "DOUBLE_AFTER_SPLIT": True,
+    "SURRENDER": True,
+}
 
 
 def blackjack_rank(rank_val):
@@ -24,10 +26,7 @@ def blackjack_rank(rank_val):
 
 
 def blackjack_sum(cards):
-    bj_sum = {
-        "sum": 0,
-        "soft": False
-    }
+    bj_sum = BJSum(0, False)
     for c in cards:
         v = blackjack_rank(c.rank_val())
         if not bj_sum["soft"]:
@@ -50,6 +49,33 @@ def blackjack_sum(cards):
     return bj_sum
 
 
+class BJSum:
+    def __init__(self, val, soft):
+        if val:
+            self.val = val
+        else:
+            self.val = 0
+        if soft:
+            self.soft = soft
+        else:
+            self.soft = False
+
+    def __str__(self):
+        return f"{self.val}" + (" Soft" if self.soft else "")
+
+    def __getitem__(self, item):
+        if item == "soft":
+            return self.soft
+        if item == "val" or item == "sum" or item == "value":
+            return self.val
+
+    def __setitem__(self, item, value):
+        if item == "soft":
+            self.soft = value
+        if item == "val" or item == "sum" or item == "value":
+            self.val = value
+
+
 class Player:
     def __init__(self, **kwargs):
         name = kwargs.get("name")
@@ -57,7 +83,7 @@ class Player:
         if bankroll:
             self.bankroll = bankroll
         else:
-            self.bankroll = DEFAULT_BANKROLL
+            self.bankroll = rules["DEFAULT_BANKROLL"]
         if name:
             self.name = name
         else:
@@ -95,25 +121,25 @@ class Hand:
         if self.sum["sum"] >= 21:
             self.open = False
             return
-        if not HIT_AFTER_SPLIT_ACE and self.has_split and self.cards[0].rank_val() == 1:
+        if not rules["HIT_AFTER_SPLIT_ACE"] and self.has_split and self.cards[0].rank_val() == 1:
             self.can_hit = False
         else:
             self.can_hit = True
         if len(self.cards) == 2:
-            if not DOUBLE_AFTER_SPLIT and self.has_split:
+            if not rules["DOUBLE_AFTER_SPLIT"] and self.has_split:
                 self.can_double = False
             else:
                 if self.player.bankroll >= self.bet:
                     self.can_double = True
                 else:
                     self.can_double = False
-            if SURRENDER and not self.has_split:
+            if ["SURRENDER"] and not self.has_split:
                 self.can_surrender = True
             else:
                 self.can_surrender = False
             if (self.player.bankroll >= self.bet and blackjack_rank(self.cards[0].rank_val())
                     == blackjack_rank(self.cards[1].rank_val())):
-                if not RE_SPLIT_ACE and self.cards[0].rank_val() == 1 and self.has_split:
+                if not ["RE_SPLIT_ACE"] and self.cards[0].rank_val() == 1 and self.has_split:
                     self.can_split = False
                 else:
                     self.can_split = True
@@ -181,7 +207,7 @@ def run_player_round(deck, plr, dealer_show, bet, ini_hand, bots_playing=False):
             can_hit = hand.can_hit
             can_double = hand.can_double
             can_surrender = hand.can_surrender
-            can_split = hand.can_split and len(plr_hands) < MAX_SPLIT
+            can_split = hand.can_split and len(plr_hands) < rules["MAX_SPLIT"]
             if not bots_playing:
                 action = input("Action? (S)tand" +
                                (" (H)it" if can_hit else "") +
@@ -222,7 +248,7 @@ def run_player_round(deck, plr, dealer_show, bet, ini_hand, bots_playing=False):
                 print(f"{plr} surrenders. Return: ${bet / 2}")
                 plr.bankroll += bet / 2
                 plr_hands = []
-            elif action == "Sp" and hand.can_split and len(plr_hands) < MAX_SPLIT:
+            elif action == "Sp" and hand.can_split and len(plr_hands) < rules["MAX_SPLIT"]:
                 print(f"{plr} splits the hand.")
                 new_hand = hand.split()
                 plr_hands.append(new_hand)
@@ -274,7 +300,7 @@ class Blackjack:
         else:
             plrs = bots
         print("Dealer has arrived. Deck is shuffled, table is open for play.")
-        deck = Deck(size=DECKS_AMOUNT)
+        deck = Deck(size=rules["DECKS_AMOUNT"])
         # deck = get_splitter_deck("A")
         while True:
             if rounds:
@@ -296,9 +322,9 @@ class Blackjack:
                     print("\nTable closed, goodbye")
                     break
             print("\n\n---------- NEW ROUND ----------\n\n")
-            if len(deck.cards) < DECKS_AMOUNT * 52 * CARDS_BEFORE_SHUFFLING:
+            if len(deck.cards) < rules["DECKS_AMOUNT"] * 52 * rules["CARDS_BEFORE_SHUFFLING"]:
                 print("**Cut card reached last round, deck reshuffled**")
-                deck = Deck(size=DECKS_AMOUNT)
+                deck = Deck(size=rules["DECKS_AMOUNT"])
             dealer_hand = [deck.draw(), deck.draw()]
             bets = []
             insured = []
@@ -306,17 +332,17 @@ class Blackjack:
             hands = []
             results = []
             for plr in plrs:
-                if (not bots_playing) and plr.bankroll < MIN_BET:
+                if (not bots_playing) and plr.bankroll < rules["MIN_BET"]:
                     print(f"{plr} does not have sufficient bankroll. They will be sitting out from now on.")
                     plrs.remove(plr)
                     continue
                 print(f"{plr}'s turn to place bet. Bankroll: ${plr.bankroll}.")
                 if not bots_playing:
-                    bet = input(f"Place your bet (Min: ${MIN_BET}, Max: ${MAX_BET}\n$")
+                    bet = input(f"Place your bet (Min: ${rules["MIN_BET"]}, Max: ${rules["MAX_BET"]}\n$")
                     # set bet to bot decision
                     if bet.replace(".","").isnumeric():
                         bet = float(bet)
-                        if MIN_BET <= bet <= MAX_BET and plr.bankroll >= bet:
+                        if rules["MIN_BET"] <= bet <= rules["MAX_BET"] and plr.bankroll >= bet:
                             bets.append((plr, bet))
                         else:
                             print("Invalid bet sizing, turn skipped.")
@@ -335,7 +361,7 @@ class Blackjack:
                 continue
             print(f"Dealer is showing {dealer_hand[0]}")
 
-            if INSURANCE and dealer_hand[0].rank_val() == 1:
+            if rules["INSURANCE"] and dealer_hand[0].rank_val() == 1:
                 # Insurance
                 print(f"Dealer is showing an Ace, Insurance is open.")
                 for bet in bets:
@@ -381,7 +407,7 @@ class Blackjack:
                     print("Some players had taken insurance, payouts:")
                     print("\n".join(f"{i[0]}:\n  PAYOUT: ${i[1] + i[1] * 2}\n  NET WINNINGS: $0" for i in insured))
                     print("All other players lose their bets.")
-                elif dealer_hand[0].rank_val() == 1 and INSURANCE:
+                elif dealer_hand[0].rank_val() == 1 and rules["INSURANCE"]:
                     print("No players had taken insurance, all players lose their bets.")
                 else:
                     print("All players lose their bets.")
@@ -413,7 +439,7 @@ class Blackjack:
             print(f"Dealer has {show_cards(dealer_hand)}")
             while True:
                 dealer_sum = blackjack_sum(dealer_hand)
-                if dealer_sum["sum"] < 17 or ((not STAND_SOFT_17) and dealer_sum["soft"]
+                if dealer_sum["sum"] < 17 or ((not rules["STAND_SOFT_17"]) and dealer_sum["soft"]
                                               and dealer_sum["sum"] < 18):
                     new_card = deck.draw()
                     print(f"Dealer hits, receives {new_card}")
@@ -443,8 +469,8 @@ class Blackjack:
                         net += plr_hand.bet
                         # Dealer Bust
                     elif plr_hand.sum["sum"] == 21 and len(plr_hand.cards) == 2:
-                        payout += plr_hand.bet + plr_hand.bet * BLACKJACK_PAYS
-                        net += plr_hand.bet * BLACKJACK_PAYS
+                        payout += plr_hand.bet + plr_hand.bet * rules["BLACKJACK_PAYS"]
+                        net += plr_hand.bet * rules["BLACKJACK_PAYS"]
                         # Player Blackjack
                     elif plr_hand.sum["sum"] > dealer_sum["sum"]:
                         payout += plr_hand.bet * 2

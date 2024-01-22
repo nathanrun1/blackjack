@@ -30,8 +30,8 @@ class Bot:
             self.bankroll = bankroll
             self.initial_bankroll = bankroll
         else:
-            self.bankroll = DEFAULT_BANKROLL
-            self.initial_bankroll = DEFAULT_BANKROLL
+            self.bankroll = rules["DEFAULT_BANKROLL"]
+            self.initial_bankroll = rules["DEFAULT_BANKROLL"]
         if name:
             self.name = name
         else:
@@ -49,7 +49,7 @@ class Bot:
         return (f"NAME: {self.name}\nBANKROLL: ${self.bankroll}\nINITIAL BANKROLL: ${self.initial_bankroll}"
                 f"\nNET WINNINGS: ${self.bankroll - self.initial_bankroll}"
                 f"\nEV/ROUND: ${(self.bankroll - self.initial_bankroll)/self.total_rounds}"
-                f"\nUNIT EV/ROUND: {((self.bankroll - self.initial_bankroll)/self.total_rounds)/MIN_BET}")
+                f"\nUNIT EV/ROUND: {((self.bankroll - self.initial_bankroll)/self.total_rounds)/rules["MIN_BET"]}")
 
     # decide(self, decision_type, choices, **kwargs) provides the bot's decision based on multiple factors
     def decide(self, decision_type, choices, **kwargs):
@@ -68,11 +68,11 @@ class Bot:
             if self.bet_strategy == "hilo":
                 true_count = round(hilo(deck.cards) / (len(deck.cards) / 52))
                 if true_count > 1:
-                    return MIN_BET * (true_count - 1)
+                    return rules["MIN_BET"] * (true_count - 1)
                 else:
-                    return MIN_BET
+                    return rules["MIN_BET"]
             elif self.bet_strategy == "min":
-                return MIN_BET
+                return rules["MIN_BET"]
         elif decision_type == "insurance":
             return "y"
 
