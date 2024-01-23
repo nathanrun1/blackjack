@@ -75,6 +75,14 @@ class BJSum:
         if item == "val" or item == "sum" or item == "value":
             self.val = value
 
+    def __eq__(self, other):
+        return self.val == other.val and self.soft == other.soft
+
+    def __key(self):
+        return self.val, self.soft
+
+    def __hash__(self):
+        return hash(self.__key())
 
 class Player:
     def __init__(self, **kwargs):
