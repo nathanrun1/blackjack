@@ -312,7 +312,7 @@ def create_gto_tables(h=True,s=True,sp=True):
         for i in range(10):
             card = i + 1
             row = []
-            if i == 1:
+            if i == 0:
                 row.append("AA")
             else:
                 row.append(f"{card}{card}")
