@@ -1,4 +1,5 @@
 import copy
+import pickle
 import sys
 import warnings
 from blackjack import *
@@ -273,14 +274,24 @@ def get_optimal_decision(dealer_up_card, ini_card_ranks=None, hand_sum=None):
 
 def create_gto_tables(h=True,s=True,sp=True):
     hard_table = Pt(["", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Ace"])
+    hard_table_t = [
+        ["", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Ace"]
+    ]
     soft_table = Pt(["", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Ace"])
+    soft_table_t = [
+        ["", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Ace"]
+    ]
     split_table = Pt(["", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Ace"])
+    split_table_t = [
+        ["", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Ace"]
+    ]
     if h:
         # Hard Sum Table:
         progress = 0
         for i in range(10):
             c_sum = 17 - i
             row = [str(c_sum)]
+            row_t = []
             for r in card_ranks_nodup:
                 progress += 1
                 b = "Creating Hard Sum Table... " + str(progress) + "%"
@@ -289,14 +300,24 @@ def create_gto_tables(h=True,s=True,sp=True):
             ace_col = row.pop(1)
             row.append(ace_col)
             hard_table.add_row(row)
+            for el in row:
+                if len(el) > 2:
+                    # Two possible decisions
+                    row_t.append((el[0], el[-1]))
+                else:
+                    row_t.append(el)
+            hard_table_t.append(row_t)
         print("\n")
         print(hard_table)
+        with open("./Tables/hard_sum.pickle", "wb") as handle:
+            pickle.dump(hard_table_t, handle, protocol=pickle.HIGHEST_PROTOCOL)
     if s:
         # Soft Sum Table:
         progress = 0
         for i in range(8):
             c_sum = 20 - i
             row = [f"A{c_sum-11}"]
+            row_t = []
             for r in card_ranks_nodup:
                 progress += (1/80) * 100
                 b = "Creating Soft Sum Table... " + str(progress) + "%"
@@ -305,14 +326,24 @@ def create_gto_tables(h=True,s=True,sp=True):
             ace_col = row.pop(1)
             row.append(ace_col)
             soft_table.add_row(row)
+            for el in row:
+                if len(el) > 2:
+                    # Two possible decisions
+                    row_t.append((el[0], el[-1]))
+                else:
+                    row_t.append(el)
+            soft_table_t.append(row_t)
         print("\n")
         print(soft_table)
+        with open("./Tables/soft_sum.pickle", "wb") as handle:
+            pickle.dump(soft_table_t, handle, protocol=pickle.HIGHEST_PROTOCOL)
     if sp:
         # Split Table:
         progress = 0
         for i in range(10):
             card = i + 1
             row = []
+            row_t = []
             if i == 0:
                 row.append("AA")
             else:
@@ -325,12 +356,20 @@ def create_gto_tables(h=True,s=True,sp=True):
             ace_col = row.pop(1)
             row.append(ace_col)
             split_table.add_row(row)
+            for el in row:
+                if len(el) > 2:
+                    # Two possible decisions
+                    row_t.append((el[0], el[-1]))
+                else:
+                    row_t.append(el)
+            split_table_t.append(row_t)
         print("\n")
         print(split_table)
+        with open("./Tables/split.pickle", "wb") as handle:
+            pickle.dump(split_table_t, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-
-create_gto_tables(h=False, s=False, sp=True)
+create_gto_tables(h=False, s=False, sp=False)
 # print(run_sims(make_bj_sum(16, False)))
 # print(create_row(6))
 # print(create_dealer_table())
@@ -340,5 +379,64 @@ create_gto_tables(h=False, s=False, sp=True)
 # dealer_odds = create_row(10)
 # dealer_odds = dealer_odds[0:6]
 
+hard_sum_table = [
+    [None, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1],
+    [17, "S", "S", "S", "S", "S", "S", "S", "S", "S", "S"],
+    [16, "S", "S", "S", "S", "S", "H", "H", ("Su", "H"), ("Su", "H"), ("Su", "H")],
+    [15, "S", "S", "S", "S", "S", "H", "H", "H", ("Su", "H"), "H"],
+    [14, "S", "S", "S", "S", "S", "H", "H", "H", "H", "H"],
+    [13, "S", "S", "S", "S", "S", "H", "H", "H", "H", "H"],
+    [12, "H", "H", "S", "S", "S", "H", "H", "H", "H", "H"],
+    [11, ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H")
+     , ("D", "H"), ("D", "H"), ("D", "H"), "H"],
+    [10, ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H")
+     , ("D", "H"), ("D", "H"), "H", "H"],
+    [9, ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H")
+     , "H", "H", "H", "H"],
+    [8, "H", "H", "H", "H", "H", "H", "H", "H", "H", "H"]
+]
 
+soft_sum_table = [
+    [None, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1],
+    ["A9", "S", "S", "S", "S", "S", "S", "S", "S", "S", "S"],
+    ["A8", "S", "S", "S", "S", "S", "S", "S", "S", "S", "S"],
+    ["A7", "S", ("D", "S"), ("D", "S"), ("D", "S"), ("D", "S"),
+     "S", "S", "H", "H", "H"],
+    ["A6", "H", ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H"),
+     "H", "H", "H", "H", "H"],
+    ["A5", "H", "H", ("D", "H"), ("D", "H"), ("D", "H"),
+     "H", "H", "H", "H", "H"],
+    ["A4", "H", "H", "H", ("D", "H"), ("D", "H"),
+     "H", "H", "H", "H", "H"],
+    ["A3", "H", "H", "H", ("D", "H"), ("D", "H"),
+     "H", "H", "H", "H", "H"],
+    ["A2", "H", "H", "H", "H", ("D", "H"),
+     "H", "H", "H", "H", "H"],
+    ["A1", "H", "H", "H", "H", "H",
+     "H", "H", "H", "H", "H"]
+]
+
+split_sum_table = [
+    [None, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1],
+    ["11", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp"],
+    ["22", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "H", "H", "H"],
+    ["33", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "H", "H", "H"],
+    ["44", "H", "H", "H", "Sp", "Sp", "H", "H", "H", "H", "H"],
+    ["55", ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H"), ("D", "H")
+     , ("D", "H"), ("D", "H"), "H", "H"],
+    ["66", "Sp", "Sp", "Sp", "Sp", "Sp", "H", "H", "H", "H", "H"],
+    ["77", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "H", "H", "H"],
+    ["88", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp", "Sp"],
+    ["99", "Sp", "Sp", "Sp", "Sp", "Sp", "S", "Sp", "Sp", "S", "S"],
+    ["TT", "S", "S", "S", "S", "S", "S", "S", "S", "S", "S"]
+
+]
+with open("./Tables/hard_sum.pickle", "wb") as handle:
+    pickle.dump(hard_sum_table, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+with open("./Tables/soft_sum.pickle", "wb") as handle2:
+    pickle.dump(soft_sum_table, handle2, protocol=pickle.HIGHEST_PROTOCOL)
+
+with open("./Tables/split.pickle", "wb") as handle3:
+    pickle.dump(split_sum_table, handle3, protocol=pickle.HIGHEST_PROTOCOL)
 

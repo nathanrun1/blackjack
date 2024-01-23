@@ -174,7 +174,7 @@ class Hand:
         self.refresh()
 
     def split(self):
-        new_hand = Hand([self.cards.pop()], self.player, self.bet, self.deck, self.index+1)
+        new_hand = Hand([self.cards.pop()], self.player, self.bet, self.deck)
         self.hit(self.deck.draw())
         self.has_split = True
         new_hand.has_split = True
@@ -232,7 +232,7 @@ def run_player_round(deck, plr, dealer_show, bet, ini_hand, bots_playing=False):
                     bot_choices.append("Su")
                 if can_split:
                     bot_choices.append("Sp")
-                action = plr.decide("hand_action", bot_choices, hands=plr_hands, deck=deck)
+                action = plr.decide("hand_action", bot_choices, hands=plr_hands, dealer_show=dealer_show, deck=deck)
             if action == "S":
                 print(f"{plr} stands" + (f" Hand {ind + 1}" if len(plr_hands) > 1 else "")
                       + f" with {hand.sum["sum"]}")
@@ -247,7 +247,7 @@ def run_player_round(deck, plr, dealer_show, bet, ini_hand, bots_playing=False):
             elif action == "D" and hand.can_double:
                 new_card = deck.draw()
                 print(f"{plr} doubles down " +
-                      (f"on Hand {hand.index} " if len(plr_hands) > 1 else "") +
+                      (f"on Hand {ind + 1} " if len(plr_hands) > 1 else "") +
                       f"for additional ${hand.bet}, receives {new_card}")
                 hand.double(new_card)
                 print(f"\nNew Hand: {hand}" +
@@ -391,14 +391,14 @@ class Blackjack:
                 plr_bet = bet[1]
                 plr_hand = Hand(cards=[deck.draw(),deck.draw()], player=plr,deck=deck,bet=plr_bet)
                 hands.append((plr,plr_hand,plr_bet))
-                if blackjack_sum(plr_hand.cards) == 21:
+                if blackjack_sum(plr_hand.cards).val == 21:
                     # Player Blackjack
                     blackjacks.append((plr, plr_bet))
 
             print("Player hands:")
             print(", ".join(f"{h[0]}: " + h[1].__str__() for h in hands))
 
-            if blackjack_sum(dealer_hand) == 21:
+            if blackjack_sum(dealer_hand).val == 21:
                 print(f"Dealer has blackjack: {show_cards(dealer_hand)}")
                 if blackjacks:
                     print(f"Some players had blackjack.")

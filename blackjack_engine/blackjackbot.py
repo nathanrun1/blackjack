@@ -1,4 +1,5 @@
 from blackjack import *
+import pickle
 
 decisions = ["S", "H", "Su", "Sp", "D"]
 decision_types = ["hand_action", "bet_sizing", "insurance"]
@@ -19,9 +20,64 @@ def hilo(cards):
 def basic_strategy_choice(hand, dealer_show, choices):
     hand_sum = blackjack_sum(hand.cards)
     dealer_show_rank = blackjack_rank(dealer_show.rank_val())
+    decision_table = []
+    if "Sp" in choices:
+        # Split
+        with open("./Tables/split.pickle", "rb") as handle:
+            decision_table = pickle.load(handle)
+        column_index = decision_table[0].index(dealer_show_rank)
+        split_card_rank = blackjack_rank(hand.cards[0].rank_val())
+        if split_card_rank == 10:
+            row = next(row for row in decision_table[1:]
+                       if row[0] == "TT")
+        else:
+            row = next(row for row in decision_table[1:]
+                       if int(row[0][0]) == split_card_rank)
+        decision = row[column_index]
+        if isinstance(decision, tuple):
+            if decision[0] in choices:
+                decision = decision[0]
+            else:
+                decision = decision[1]
+        return decision
+    elif hand_sum.soft:
+        # Soft Sum
+        with open("./Tables/soft_sum.pickle", "rb") as handle:
+            decision_table = pickle.load(handle)
+        column_index = decision_table[0].index(dealer_show_rank)
+        row = next(row for row in decision_table[1:]
+                   if int(row[0][1]) == blackjack_rank(hand.cards[0].rank_val()) or
+                   int(row[0][1]) == blackjack_rank(hand.cards[1].rank_val()))
+        decision = row[column_index]
+        if isinstance(decision, tuple):
+            if decision[0] in choices:
+                decision = decision[0]
+            else:
+                decision = decision[1]
+        return decision
+    else:
+        # Hard Sum
+        with open("./Tables/hard_sum.pickle", "rb") as handle:
+            decision_table = pickle.load(handle)
+        column_index = decision_table[0].index(dealer_show_rank)
+        if hand_sum.val >= 17:
+            row = next(row for row in decision_table[1:]
+                       if row[0] == 17)
+        elif hand_sum.val <= 8:
+            row = next(row for row in decision_table[1:]
+                       if row[0] == 8)
+        else:
+            row = next(row for row in decision_table[1:]
+                       if row[0] == hand_sum.val)
+        decision = row[column_index]
+        if isinstance(decision, tuple):
+            if decision[0] in choices:
+                decision = decision[0]
+            else:
+                decision = decision[1]
+        return decision
 
 
-bet_strategies = ["min","hilo"]
 class Bot:
     def __init__(self, **kwargs):
         name = kwargs.get("name")
@@ -40,7 +96,7 @@ class Bot:
         self.wins = 0
         self.losses = 0
 
-        self.bet_strategy = "min"
+        self.bet_strategy = "hilo"
 
     def __str__(self):
         return self.name
@@ -61,12 +117,14 @@ class Bot:
             dealer_showing = kwargs.get("dealer_show")
 
             # temp:
-            return "S"
+            # return "S"
+            return basic_strategy_choice(current_hand, dealer_showing, choices)
         elif decision_type == "bet_sizing":
             deck = kwargs.get("deck")
             # HILO
             if self.bet_strategy == "hilo":
                 true_count = round(hilo(deck.cards) / (len(deck.cards) / 52))
+                print(f"True count: {true_count}")
                 if true_count > 1:
                     return rules["MIN_BET"] * (true_count - 1)
                 else:
