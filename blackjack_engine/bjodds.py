@@ -270,6 +270,7 @@ def get_optimal_decision(dealer_up_card, ini_card_ranks=None, hand_sum=None):
     else:
         return top_dec
 
+
 def create_gto_tables(h=True,s=True,sp=True):
     hard_table = Pt(["", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Ace"])
     soft_table = Pt(["", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Ace"])
