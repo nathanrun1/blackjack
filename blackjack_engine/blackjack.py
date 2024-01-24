@@ -85,9 +85,10 @@ class BJSum:
         return hash(self.__key())
 
 class Player:
-    def __init__(self, **kwargs):
+    def __init__(self, is_bot=False, **kwargs):
         name = kwargs.get("name")
         bankroll = kwargs.get("bankroll")
+        self.is_bot = is_bot
         if bankroll:
             self.bankroll = bankroll
         else:
@@ -137,7 +138,7 @@ class Hand:
             if not rules["DOUBLE_AFTER_SPLIT"] and self.has_split:
                 self.can_double = False
             else:
-                if self.player.bankroll >= self.bet:
+                if self.player.bankroll >= self.bet or self.player.is_bot:
                     self.can_double = True
                 else:
                     self.can_double = False
@@ -145,7 +146,7 @@ class Hand:
                 self.can_surrender = True
             else:
                 self.can_surrender = False
-            if (self.player.bankroll >= self.bet and blackjack_rank(self.cards[0].rank_val())
+            if ((self.player.bankroll >= self.bet or self.player.is_bot) and blackjack_rank(self.cards[0].rank_val())
                     == blackjack_rank(self.cards[1].rank_val())):
                 if not ["RE_SPLIT_ACE"] and self.cards[0].rank_val() == 1 and self.has_split:
                     self.can_split = False
