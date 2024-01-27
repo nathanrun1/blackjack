@@ -187,4 +187,4 @@ class Bot:
 
 
 
-Blackjack(bots_playing=True, bots=[Bot()],rounds=10000)
+Blackjack(bots_playing=True, bots=[Bot()],rounds=100000)
