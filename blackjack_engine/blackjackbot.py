@@ -106,9 +106,10 @@ def basic_strategy_choice(hand, dealer_show, choices):
 
 
 class Bot:
-    def __init__(self, **kwargs):
+    def __init__(self, can_bust=False, **kwargs):
         name = kwargs.get("name")
         bankroll = kwargs.get("bankroll")
+        self.can_bust = can_bust
         self.is_bot = True
         if bankroll:
             self.bankroll = bankroll
@@ -168,11 +169,11 @@ class Bot:
                 if true_count == 1:
                     bet = min_bet * 1.5
                 elif true_count == 2:
-                    bet = min_bet * 2
+                    bet = min_bet * 4
                 elif true_count == 3:
-                    bet = min_bet * 3
+                    bet = min_bet * 6
                 elif true_count == 4:
-                    bet = min_bet * 3
+                    bet = min_bet * 10
                 elif true_count in (5, 6):
                     bet = min_bet * 18
                 elif true_count > 7:
@@ -183,8 +184,18 @@ class Bot:
             else:
                 return rules["MIN_BET"]
         elif decision_type == "insurance":
-            return "y"
+            return "n"
 
 
-
-Blackjack(bots_playing=True, bots=[Bot()],rounds=100000)
+# testing stuff --
+wins = 0
+losses = 0
+rounds = 5
+for i in range(rounds):
+    bot=Bot(can_bust=True)
+    Blackjack(bots_playing=True, bots=[bot],rounds=2000)
+    if bot.bankroll > 0:
+        wins += 1
+    else:
+        losses += 1
+print(f"Wins: {wins}\nLosses: {losses}\nRounds: {rounds}\nwinrate: {round((wins / rounds), 3) * 100}%")

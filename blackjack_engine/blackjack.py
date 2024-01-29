@@ -4,7 +4,7 @@ from cards import Deck, Card
 rules = {
     "DEFAULT_BANKROLL": 1000,
     "BLACKJACK_PAYS": (3/2), # (e.g. 3/2 i.e. 3/2)
-    "MIN_BET": 10,
+    "MIN_BET": 100,
     "MAX_BET": 100000000000,
     "DECKS_AMOUNT": 6,
     "CARDS_BEFORE_SHUFFLING": 0.5,  # (e.g 0.5 or 50%)
@@ -341,7 +341,7 @@ class Blackjack:
             hands = []
             results = []
             for plr in plrs:
-                if (not bots_playing) and plr.bankroll < rules["MIN_BET"]:
+                if plr.bankroll < rules["MIN_BET"] and (not plr.is_bot or plr.can_bust):
                     print(f"{plr} does not have sufficient bankroll. They will be sitting out from now on.")
                     plrs.remove(plr)
                     continue
