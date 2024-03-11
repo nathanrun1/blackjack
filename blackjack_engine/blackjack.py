@@ -1,6 +1,6 @@
 import random
 from cards import Deck, Card
-from count_functions import *
+import count_functions
 
 rules = {
     "DEFAULT_BANKROLL": 1000,
@@ -290,6 +290,7 @@ def get_splitter_deck(rank):
 
 class Blackjack:
     def __init__(self, bots_playing=False, bots=None, rounds=None, count_function=None):
+        print("Welcome to ACECOUNT")
         self.rounds_played = 0
         if bots is None:
             bots = []
@@ -501,4 +502,4 @@ class Blackjack:
 
 
 # Uncomment to play:
-Blackjack(count_function=hilo)
+Blackjack(count_function=count_functions.hilo)

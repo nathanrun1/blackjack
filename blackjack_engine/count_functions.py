@@ -1,5 +1,11 @@
 import math
-from blackjack import blackjack_rank
+
+
+def blackjack_rank(rank_val):
+    if rank_val > 10:
+        return 10
+    else:
+        return rank_val
 
 
 # hilo(cards) returns Hi-Lo blackjack running count for all provided dealt cards
