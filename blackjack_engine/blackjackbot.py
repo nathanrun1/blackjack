@@ -1,43 +1,10 @@
 from blackjack import *
+from count_functions import *
 import math
 import pickle
 
 decisions = ["S", "H", "Su", "Sp", "D"]
 decision_types = ["hand_action", "bet_sizing", "insurance"]
-
-
-# hilo(cards) returns Hi-Lo blackjack running count for all provided dealt cards
-def hilo(deck):
-    count = 0
-    drawn = deck.drawn
-    for card in drawn:
-        bj_rank = blackjack_rank(card.rank_val())
-        if 2 <= bj_rank <= 6:
-            count += 1
-        elif bj_rank == 10 or bj_rank == 1:
-            count -= 1
-    true_count = round(count / (len(deck.cards) / 52))
-    return true_count
-
-
-def uston(deck):
-    count = 0
-    drawn = deck.drawn
-    for card in drawn:
-        bj_rank = blackjack_rank(card.rank_val())
-        if bj_rank == 10 or bj_rank == 1:
-            count -= 3
-        elif bj_rank == 9:
-            count -= 1
-        elif bj_rank == 8 or bj_rank == 2:
-            count += 1
-        elif bj_rank in (3, 4, 6, 7):
-            count += 2
-        elif bj_rank == 5:
-            count += 3
-    count += 3 * math.floor(len(deck.drawn) / 13)
-    true_count = round(count / (len(deck.cards) / 26))
-    return true_count
 
 
 def basic_strategy_choice(hand, dealer_show, choices):
@@ -188,14 +155,15 @@ class Bot:
 
 
 # testing stuff --
-wins = 0
-losses = 0
-rounds = 5
-for i in range(rounds):
-    bot=Bot(can_bust=True)
-    Blackjack(bots_playing=True, bots=[bot],rounds=2000)
-    if bot.bankroll > 0:
-        wins += 1
-    else:
-        losses += 1
-print(f"Wins: {wins}\nLosses: {losses}\nRounds: {rounds}\nwinrate: {round((wins / rounds), 3) * 100}%")
+Blackjack(bots_playing=True, bots=[Bot(),Bot()],rounds=10000)
+# wins = 0
+# losses = 0
+# rounds = 5
+# for i in range(rounds):
+#     bot=Bot(can_bust=True)
+#     Blackjack(bots_playing=True, bots=[bot],rounds=2000)
+#     if bot.bankroll > 0:
+#         wins += 1
+#     else:
+#         losses += 1
+# print(f"Wins: {wins}\nLosses: {losses}\nRounds: {rounds}\nwinrate: {round((wins / rounds), 3) * 100}%")

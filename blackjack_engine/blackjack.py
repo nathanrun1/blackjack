@@ -1,5 +1,6 @@
 import random
 from cards import Deck, Card
+from count_functions import *
 
 rules = {
     "DEFAULT_BANKROLL": 1000,
@@ -288,13 +289,12 @@ def get_splitter_deck(rank):
 
 
 class Blackjack:
-    def __init__(self, bots_playing=False, bots=None, rounds=None):
+    def __init__(self, bots_playing=False, bots=None, rounds=None, count_function=None):
         self.rounds_played = 0
         if bots is None:
             bots = []
         print("Table has opened!")
         if not bots_playing:
-            print(bots_playing)
             plrs = []
             first_plr_name = input("Enter first player's name:\n")
             plrs.append(Player(name=first_plr_name))
@@ -464,6 +464,8 @@ class Blackjack:
                     print("Dealer busts")
                     break
             print("\n ROUND OVER, RESULTS:")
+            if count_function:
+                print(f"Current Count: {count_function(deck)}")
             for result in results:
                 plr = result[0]
                 dealer_sum = blackjack_sum(dealer_hand)
@@ -498,15 +500,5 @@ class Blackjack:
             print("\n--- END OF RESULTS\n")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+# Uncomment to play:
+Blackjack(count_function=hilo)
