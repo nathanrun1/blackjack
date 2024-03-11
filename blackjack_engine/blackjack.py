@@ -502,4 +502,5 @@ class Blackjack:
 
 
 # Uncomment to play:
-Blackjack(count_function=count_functions.hilo)
+# Blackjack(count_function=count_functions.hilo)
+# (will display HiLo count, remove count_function to disable or replace 'hilo' with 'uston' for Uston count)
